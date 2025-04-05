@@ -3,7 +3,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::models::{Artist, ContributorArtist, DeezerArray, DeezerObject, DeezerUpcObject, Genre, Track, Upc};
+use crate::models::{
+    Artist, ContributorArtist, DeezerArray, DeezerObject, DeezerUpcObject, Genre, Track, Upc,
+};
 use crate::Result;
 
 /// Contains all the information provided for an Album.

@@ -11,7 +11,7 @@ use crate::Result;
 const BASE_URL: &str = "https://api.deezer.com";
 
 /// Entrypoint to interact with all deezer apis
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct DeezerClient {
     client: reqwest::Client,
 }
@@ -19,9 +19,7 @@ pub struct DeezerClient {
 impl DeezerClient {
     /// Create a new unauthenticated client instance
     pub fn new() -> Self {
-        DeezerClient {
-            client: reqwest::Client::new(),
-        }
+        Default::default()
     }
 
     /// Returns the [`Album`] with the given id.
@@ -48,9 +46,13 @@ impl DeezerClient {
     /// Returns the [`Album`] for Artist with the given id.
     ///
     /// [Deezer Api Documentation](https://developers.deezer.com/api/artist/albums)
-    pub async fn artist_albums(&self, id: u64, limit: Option<u32>,
-                               offset: Option<u32>) -> Result<Vec<ArtistAlbum>> {
-         self.get_subresource(id, limit, offset).await
+    pub async fn artist_albums(
+        &self,
+        id: u64,
+        limit: Option<u32>,
+        offset: Option<u32>,
+    ) -> Result<Vec<ArtistAlbum>> {
+        self.get_subresource(id, limit, offset).await
     }
 
     /// Returns the [`Comment`] with the given id.
@@ -147,9 +149,9 @@ impl DeezerClient {
         self.get(&url).await
     }
 
-    pub(crate) async fn get_entity_from_url<T>(&self, url:String) -> Result<Option<T>>
-        where
-            T: DeserializeOwned,
+    pub(crate) async fn get_entity_from_url<T>(&self, url: String) -> Result<Option<T>>
+    where
+        T: DeserializeOwned,
     {
         let res = self.client.get(&url).send().await?;
         if res.status() == StatusCode::NOT_FOUND {
@@ -171,8 +173,8 @@ impl DeezerClient {
     }
 
     pub(crate) async fn get_entity_by_upc<T>(&self, upc: Upc) -> Result<Option<T>>
-        where
-            T: DeezerUpcObject,
+    where
+        T: DeezerUpcObject,
     {
         let url = T::get_api_url(upc);
         let url = format!("{}/{}", BASE_URL, url);
@@ -192,10 +194,14 @@ impl DeezerClient {
         Ok(res.data)
     }
 
-    pub(crate) async fn get_subresource<T>(&self, id: u64, limit: Option<u32>,
-                                           offset: Option<u32>) -> Result<Vec<T>>
-        where
-            T: DeezerObject
+    pub(crate) async fn get_subresource<T>(
+        &self,
+        id: u64,
+        limit: Option<u32>,
+        offset: Option<u32>,
+    ) -> Result<Vec<T>>
+    where
+        T: DeezerObject,
     {
         let url = T::get_api_url(id);
         let url = format!("{}/{}", BASE_URL, url);
@@ -213,30 +219,34 @@ impl DeezerClient {
         Ok(res.data)
     }
 
-    async fn get_with_optional_params<T: DeserializeOwned>(&self, url: &str, query_params: Option<&HashMap<String, String>>) -> Result<T> {
-        let mut request_builder = self
-            .client
-            .get(url);
+    async fn get_with_optional_params<T: DeserializeOwned>(
+        &self,
+        url: &str,
+        query_params: Option<&HashMap<String, String>>,
+    ) -> Result<T> {
+        let mut request_builder = self.client.get(url);
         if let Some(params) = query_params {
             request_builder = request_builder.query(params);
         }
-        let res =
-            request_builder
-                .send()
-                .await?
-                .error_for_status()?
-                .json()
-                .await?;
+        let res = request_builder
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
 
         Ok(res)
     }
 
-    async fn get_with_params<T: DeserializeOwned>(&self, url: &str, query_params: &HashMap<String, String>) -> Result<T> {
+    async fn get_with_params<T: DeserializeOwned>(
+        &self,
+        url: &str,
+        query_params: &HashMap<String, String>,
+    ) -> Result<T> {
         self.get_with_optional_params(url, Some(query_params)).await
     }
 
     async fn get<T: DeserializeOwned>(&self, url: &str) -> Result<T> {
         self.get_with_optional_params(url, None).await
     }
-
 }

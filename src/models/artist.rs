@@ -180,10 +180,8 @@ pub struct ArtistAlbum {
     /// `The number of album's Fans`
     pub fans: u32,
     /// `The album's release date`
-
     pub release_date: String,
     /// `The record type of the album (EP / ALBUM / etc..)`
-
     pub record_type: String,
 
     /// `Whether the album contains explicit lyrics`
